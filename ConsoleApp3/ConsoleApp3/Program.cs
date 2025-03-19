@@ -1,10 +1,8 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace ZarzadzanieKontenerami
 {
-
     class KontenerCiekly
     {
         private static int licznik = 1;
@@ -25,21 +23,17 @@ namespace ZarzadzanieKontenerami
         {
             double limit = CzyNiebezpieczny ? Pojemnosc * 0.5 : Pojemnosc * 0.9;
             if (AktualnyLadunek + ilosc > limit)
-            {
-                Console.WriteLine($"Błąd: Nie można załadować {ilosc} kg do {NumerSeryjny}. Przekroczono limit.");
-                return;
-            }
+                throw new Exception($"Kontener {NumerSeryjny}: próba załadowania {ilosc} kg przekracza {limit} kg.");
             AktualnyLadunek += ilosc;
-            Console.WriteLine($"Załadowano {ilosc} kg do {NumerSeryjny}. Aktualny ładunek: {AktualnyLadunek} kg.");
+            Console.WriteLine($"Załadowano {ilosc} kg do {NumerSeryjny}. Aktualny: {AktualnyLadunek} kg.");
         }
 
         public void Rozladuj()
         {
-            Console.WriteLine($"Rozładowano {AktualnyLadunek} kg z {NumerSeryjny}.");
+            Console.WriteLine($"Rozładowano {AktualnyLadunek} kg z {NumerSeryjny} (ciekły).");
             AktualnyLadunek = 0;
         }
     }
-
 
     class KontenerGazowy
     {
@@ -61,19 +55,16 @@ namespace ZarzadzanieKontenerami
         {
             double limit = Pojemnosc * 0.5;
             if (AktualnyLadunek + ilosc > limit)
-            {
-                Console.WriteLine($"Błąd: Nie można załadować {ilosc} kg do {NumerSeryjny}. Przekroczono limit.");
-                return;
-            }
+                throw new Exception($"Kontener {NumerSeryjny}: próba załadowania {ilosc} kg przekracza {limit} kg.");
             AktualnyLadunek += ilosc;
-            Console.WriteLine($"Załadowano {ilosc} kg do {NumerSeryjny}. Aktualny ładunek: {AktualnyLadunek} kg.");
+            Console.WriteLine($"Załadowano {ilosc} kg do {NumerSeryjny}. Aktualny: {AktualnyLadunek} kg.");
         }
 
         public void Rozladuj()
         {
             double rozladowano = AktualnyLadunek * 0.95;
             AktualnyLadunek *= 0.05;
-            Console.WriteLine($"Rozładowano {rozladowano} kg z {NumerSeryjny}. Pozostało: {AktualnyLadunek} kg.");
+            Console.WriteLine($"Rozładowano {rozladowano} kg z {NumerSeryjny} (gazowy). Pozostało {AktualnyLadunek} kg.");
         }
     }
 
@@ -98,27 +89,20 @@ namespace ZarzadzanieKontenerami
         public void Zaladuj(double ilosc)
         {
             if (Temperatura < TemperaturaWymagana)
-            {
-                Console.WriteLine($"Błąd: Temperatura zbyt niska dla {NumerSeryjny}.");
-                return;
-            }
+                throw new Exception($"Kontener {NumerSeryjny}: temperatura {Temperatura}°C jest za niska.");
             double limit = Pojemnosc * 0.9;
             if (AktualnyLadunek + ilosc > limit)
-            {
-                Console.WriteLine($"Błąd: Nie można załadować {ilosc} kg do {NumerSeryjny}. Przekroczono limit.");
-                return;
-            }
+                throw new Exception($"Kontener {NumerSeryjny}: próba załadowania {ilosc} kg przekracza {limit} kg.");
             AktualnyLadunek += ilosc;
-            Console.WriteLine($"Załadowano {ilosc} kg do {NumerSeryjny}. Aktualny ładunek: {AktualnyLadunek} kg.");
+            Console.WriteLine($"Załadowano {ilosc} kg do {NumerSeryjny}. Aktualny: {AktualnyLadunek} kg.");
         }
 
         public void Rozladuj()
         {
-            Console.WriteLine($"Rozładowano {AktualnyLadunek} kg z {NumerSeryjny}.");
+            Console.WriteLine($"Rozładowano {AktualnyLadunek} kg z {NumerSeryjny} (chłodniczy).");
             AktualnyLadunek = 0;
         }
     }
-
 
     class Statek
     {
@@ -135,9 +119,24 @@ namespace ZarzadzanieKontenerami
         public void DodajKontener(object kontener)
         {
             if (kontenery.Count >= MaksKontenerow)
+                throw new Exception($"Statek {Nazwa} jest pełny.");
+            if (kontener is KontenerCiekly c)
             {
-                Console.WriteLine("Błąd: Statek jest pełny.");
-                return;
+                double limit = c.CzyNiebezpieczny ? c.Pojemnosc * 0.5 : c.Pojemnosc * 0.9;
+                if (c.AktualnyLadunek > limit)
+                    throw new Exception($"Kontener {c.NumerSeryjny} jest przeładowany.");
+            }
+            else if (kontener is KontenerGazowy g)
+            {
+                double limit = g.Pojemnosc * 0.5;
+                if (g.AktualnyLadunek > limit)
+                    throw new Exception($"Kontener {g.NumerSeryjny} jest przeładowany.");
+            }
+            else if (kontener is KontenerChlodniczy ch)
+            {
+                double limit = ch.Pojemnosc * 0.9;
+                if (ch.AktualnyLadunek > limit)
+                    throw new Exception($"Kontener {ch.NumerSeryjny} jest przeładowany.");
             }
             kontenery.Add(kontener);
             Console.WriteLine($"Dodano kontener do statku {Nazwa}.");
@@ -145,7 +144,27 @@ namespace ZarzadzanieKontenerami
 
         public void WyswietlInformacje()
         {
-            Console.WriteLine($"Statek {Nazwa} przewozi {kontenery.Count}/{MaksKontenerow} kontenerów.");
+            Console.WriteLine($"\nStatek {Nazwa} przewozi {kontenery.Count}/{MaksKontenerow} kontenerów.");
+            foreach (var k in kontenery)
+            {
+                if (k is KontenerCiekly c)
+                    Console.WriteLine($" - {c.NumerSeryjny}: {c.AktualnyLadunek}/{c.Pojemnosc} kg (ciekły)");
+                else if (k is KontenerGazowy g)
+                    Console.WriteLine($" - {g.NumerSeryjny}: {g.AktualnyLadunek}/{g.Pojemnosc} kg (gazowy)");
+                else if (k is KontenerChlodniczy ch)
+                    Console.WriteLine($" - {ch.NumerSeryjny}: {ch.AktualnyLadunek}/{ch.Pojemnosc} kg (chłodniczy)");
+            }
+        }
+
+        public void RozladujWszystko()
+        {
+            foreach (var k in kontenery)
+            {
+                if (k is KontenerCiekly c) c.Rozladuj();
+                if (k is KontenerGazowy g) g.Rozladuj();
+                if (k is KontenerChlodniczy ch) ch.Rozladuj();
+            }
+            Console.WriteLine($"Rozładowano wszystkie kontenery na statku {Nazwa}.");
         }
     }
 
@@ -153,21 +172,111 @@ namespace ZarzadzanieKontenerami
     {
         static void Main()
         {
-            Statek statek = new Statek("Titanic", 5);
+            Statek st1 = new Statek("Hercules", 3);
+            Statek st2 = new Statek("Poseidon", 3);
 
-            KontenerCiekly kontenerCiekly = new KontenerCiekly(10000, false);
-            kontenerCiekly.Zaladuj(8000);
-            statek.DodajKontener(kontenerCiekly);
+            KontenerCiekly k1 = new KontenerCiekly(1000, false);
+            KontenerGazowy k2 = new KontenerGazowy(2000, 5);
+            KontenerChlodniczy k3 = new KontenerChlodniczy(5000, 2, 5);
+            KontenerCiekly k4 = new KontenerCiekly(800, false);
 
-            KontenerGazowy kontenerGazowy = new KontenerGazowy(2000, 5);
-            kontenerGazowy.Zaladuj(1000);
-            statek.DodajKontener(kontenerGazowy);
+            try
+            {
+                k1.Zaladuj(500);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
-            KontenerChlodniczy kontenerChlodniczy = new KontenerChlodniczy(8000, 4, 5);
-            kontenerChlodniczy.Zaladuj(7000);
-            statek.DodajKontener(kontenerChlodniczy);
+            try
+            {
+                k2.Zaladuj(900);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
-            statek.WyswietlInformacje();
+            try
+            {
+                k3.Zaladuj(4000);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            try
+            {
+                st1.DodajKontener(k1);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            try
+            {
+                st1.DodajKontener(k2);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            try
+            {
+                st1.DodajKontener(k3);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            try
+            {
+                k4.Zaladuj(600);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            try
+            {
+                st1.DodajKontener(k4);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            try
+            {
+                st2.DodajKontener(k4);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            st1.WyswietlInformacje();
+            st2.WyswietlInformacje();
+
+            try
+            {
+                st1.RozladujWszystko();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            st1.WyswietlInformacje();
+            st2.WyswietlInformacje();
+
+            Console.WriteLine("Koniec programu.");
         }
     }
 }
