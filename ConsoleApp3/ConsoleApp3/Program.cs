@@ -1,10 +1,10 @@
-﻿// Program.cs
+﻿
 using System;
 using System.Collections.Generic;
 
 namespace ZarzadzanieKontenerami
 {
-    // Prosta klasa dla kontenerów ciekłych
+
     class KontenerCiekly
     {
         private static int licznik = 1;
@@ -40,7 +40,7 @@ namespace ZarzadzanieKontenerami
         }
     }
 
-    // Prosta klasa dla kontenerów gazowych
+
     class KontenerGazowy
     {
         private static int licznik = 1;
@@ -77,7 +77,6 @@ namespace ZarzadzanieKontenerami
         }
     }
 
-    // Prosta klasa dla kontenerów chłodniczych
     class KontenerChlodniczy
     {
         private static int licznik = 1;
@@ -120,7 +119,7 @@ namespace ZarzadzanieKontenerami
         }
     }
 
-    // Prosta klasa statku
+
     class Statek
     {
         public string Nazwa { get; }
